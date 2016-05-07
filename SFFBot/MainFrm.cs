@@ -26,6 +26,7 @@ namespace SFFBot
         public readonly Dictionary<Action, Keys> Hotkeys = new Dictionary<Action, Keys>();
         public KeyboardHook HotkeyHook { get; }
         public bool isPoisonRunning, isRunning;
+        public bool isHtkNoticeShowed;
 
         private List<SPoisonFurni> _furnitureList = new List<SPoisonFurni>();
         private List<SStatus> _currStatuses = new List<SStatus>();
@@ -265,7 +266,10 @@ namespace SFFBot
 
         private void OpenHotkeysBtn_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("It is recommended to set hotkeys to keys that you're not using, otherwise there may come problems!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if(!isHtkNoticeShowed)
+                MessageBox.Show("It is recommended to set hotkeys to keys that you're not using, otherwise there may come problems!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            isHtkNoticeShowed = true;
 
             var frm = new HotkeyFrm(this);
             frm.Show();

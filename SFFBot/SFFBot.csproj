@@ -54,7 +54,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FlashInspect, Version=1.3.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="FlashInspect">
+      <HintPath>..\..\Tanji\Versiot\v1.4.380 [PRE-REL]\FlashInspect.dll</HintPath>
+    </Reference>
     <Reference Include="Sulakore, Version=8.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Tanji\Versiot\v1.4.380 [PRE-REL]\Sulakore.dll</HintPath>

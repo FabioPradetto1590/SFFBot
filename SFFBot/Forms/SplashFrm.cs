@@ -15,8 +15,8 @@ using Sulakore.Modules;
 using Sulakore.Habbo;
 using Sulakore.Communication;
 
-using SFFBot.Utils;
 using static SFFBot.Properties.Settings;
+using System.IO;
 
 namespace SFFBot.Dialogs
 {
@@ -35,6 +35,11 @@ namespace SFFBot.Dialogs
             InitializeComponent();
 
             TransparencyKey = BackColor;
+
+            string transitionsName = "Installed Modules\\Dependencies\\Transitions.dll"; 
+
+            if (File.Exists(transitionsName))
+                File.Move(transitionsName, "Transitions.dll");
         }
 
         
