@@ -6,10 +6,10 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ToggleBotStateHtk" Type="System.Windows.Forms.Keys" Scope="User">
-      <Value Profile="(Default)">F7</Value>
+      <Value Profile="(Default)">Alt+S</Value>
     </Setting>
     <Setting Name="TogglePoisonStateHtk" Type="System.Windows.Forms.Keys" Scope="User">
-      <Value Profile="(Default)">F8</Value>
+      <Value Profile="(Default)">Alt+P</Value>
     </Setting>
     <Setting Name="ShowSplash" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>

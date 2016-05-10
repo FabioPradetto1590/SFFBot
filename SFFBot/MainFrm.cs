@@ -24,9 +24,9 @@ namespace SFFBot
     public partial class MainFrm : ExtensionForm
     {
         public readonly Dictionary<Action, Keys> Hotkeys = new Dictionary<Action, Keys>();
-        public bool isPoisonRunning, isRunning, isHtkNoticeShowed;
         public KeyboardHook HotkeyHook { get; }
-        public int CustomDelay = 0;
+        public bool isPoisonRunning, isRunning;
+        public bool isHtkNoticeShowed;
 
         private List<SPoisonFurni> _furnitureList = new List<SPoisonFurni>();
         private List<SStatus> _currStatuses = new List<SStatus>();
@@ -48,7 +48,7 @@ namespace SFFBot
 
             _delayCheckeds = new List<ToolStripMenuItem>{
                 SB100Ckbx, SB400Ckbx, SB600Ckbx,SB800Ckbx,
-                SB1000Ckbx, SBCustomDelay };
+                SB1000Ckbx };
 
             _bottomControls = new List<Control>{
                 VersionTxt, Sep, GithubLnk };
@@ -225,11 +225,11 @@ namespace SFFBot
             AlwaysOnTopCkbx.Checked = TopMost = Default.TopMost;
             ShowHeaders();
 
-            STransition.Run(1200, new TArgument[]{
+            STransition.Run(1300, new TArgument[]{
                 new TArgument(PoisonGrp, "Top", 27),
                 new TArgument(StartGrp, "Left", 11)});
 
-            ShowNotification(new SStatus(0, 1250, 3000,
+            ShowNotification(new SStatus(0, 1500, 3000,
                $"Welcome to SFFBot v{Program.Version}! ", SystemColors.ControlText));
 
             await loadFurniTask;
@@ -261,19 +261,13 @@ namespace SFFBot
         private void OpenSettingsBtn_Click(object sender, EventArgs e)
         {
             var frm = new SettingsFrm();
-            frm.Show();
-        }
-
-        private void CustomDelayOpenDlg_Click(object sender, EventArgs e)
-        {
-            var frm = new SelectDelayFrm(this);
-            frm.Show();
+            frm.ShowDialog();
         }
 
         private void OpenHotkeysBtn_Click(object sender, EventArgs e)
         {
             if(!isHtkNoticeShowed)
-                MessageBox.Show("It is recommended to set hotkeys to keys that you're not using or there may come problems!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("It is recommended to set hotkeys to keys that you're not using, otherwise there may come problems!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
             isHtkNoticeShowed = true;
 
@@ -353,11 +347,6 @@ namespace SFFBot
             Process.Start("https://github.com/Speaqer/SFFBot/releases/tag/v" + Program.Version);
         }
 
-        private void ReportMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Clyde waz here.", "Info - Nothing here yet.", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-        }
-
         #region Thread-Safe
         public new void Show()
         {
@@ -428,11 +417,6 @@ namespace SFFBot
         {
             SelectDelayTime(SB1000Ckbx, 1000);
         }
-
-        private void SBCustomDelay_Click(object sender, EventArgs e)
-        {
-            SelectDelayTime(SBCustomDelay, CustomDelay);
-        }
         #endregion
 
         #region Functions
@@ -473,17 +457,6 @@ namespace SFFBot
             }
         }
 
-        public void SetCustomDelay(int delay)
-        {
-            if (delay == 0)
-                SBCustomDelay.Visible = false;
-            else
-                SBCustomDelay.Visible = true;
-
-            SBCustomDelay.Text = $"{delay} (ms)";
-            CustomDelay = delay;
-        }
-
         private void ShowHeaders()
         {
             WalkTxt.Text = HeaderManager.OutPlayerWalk.ToString();
@@ -505,6 +478,11 @@ namespace SFFBot
             _canGo = canadd;
         }
 
+        private void glitchBugReportsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Clyde waz here.", "Info - Nothing here yet.", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        }
+
         private async Task LoadFurniDataAsync()
         {
             XmlDocument furni = new XmlDocument();
@@ -512,7 +490,7 @@ namespace SFFBot
             using (var wc = new WebClient())
             {
                 wc.Headers.Add("User-Agent", SKore.ChromeAgent);
-                Uri url = new Uri($"{_main.Hotel.ToUrl(true)}/gamedata/furnidata_xml/1");
+                Uri url = new Uri($"http://habbo.{_main.Hotel}/gamedata/furnidata_xml/1");
                 furni.LoadXml(await wc.DownloadStringTaskAsync(url));
             }
 
