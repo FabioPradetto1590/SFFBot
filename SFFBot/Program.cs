@@ -10,7 +10,7 @@ namespace SFFBot
 {
     static class Program
     {
-        public static string Version = "0.0.1";
+        public static string Version = "0.0.2";
         
         /// <summary>
         /// The main entry point for the application.

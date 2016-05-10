@@ -37,7 +37,7 @@ namespace SFFBot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Alt+S")]
+        [global::System.Configuration.DefaultSettingValueAttribute("F7")]
         public global::System.Windows.Forms.Keys ToggleBotStateHtk {
             get {
                 return ((global::System.Windows.Forms.Keys)(this["ToggleBotStateHtk"]));
@@ -49,7 +49,7 @@ namespace SFFBot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Alt+P")]
+        [global::System.Configuration.DefaultSettingValueAttribute("F8")]
         public global::System.Windows.Forms.Keys TogglePoisonStateHtk {
             get {
                 return ((global::System.Windows.Forms.Keys)(this["TogglePoisonStateHtk"]));
