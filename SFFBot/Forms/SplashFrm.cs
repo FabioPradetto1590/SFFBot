@@ -24,7 +24,6 @@ namespace SFFBot.Dialogs
     [Module("SFFBot", "Bot for Falling Furniture game.")]
     [Author("Speaqer", ResourceName = "SFFBot's webpage", ResourceUrl = "http://sffbot.speaqer.eu", HabboName = "TBH-Speaqer", Hotel = HHotel.Com)]
     [Author("Speaqer", ResourceName = "SFFBot's webpage", ResourceUrl = "http://sffbot.speaqer.eu", HabboName = "TBH-Speaqer", Hotel = HHotel.Nl)]
-    [Author("Speaqer", ResourceName = "SFFBot's webpage", ResourceUrl = "http://sffbot.speaqer.eu", HabboName = "Speaqer-V", Hotel = HHotel.Fi)]
     [Author("Adversities", ResourceName ="Adversities Sulakore", ResourceUrl = "http://sulakore.com/member.php?action=profile&uid=23", HabboName ="Sulakore", Hotel = HHotel.Es)]
 
     public partial class SplashFrm : ExtensionForm
@@ -35,10 +34,10 @@ namespace SFFBot.Dialogs
             InitializeComponent();
 
             TransparencyKey = BackColor;
-
+ 
             string transitionsName = "Installed Modules\\Dependencies\\Transitions.dll"; 
 
-            if (File.Exists(transitionsName))
+            if (File.Exists(transitionsName) && !File.Exists("Transitions.dll")) // I hate this stuff
                 File.Move(transitionsName, "Transitions.dll");
         }
 
