@@ -37,7 +37,7 @@ namespace SFFBot.Dialogs
             PoisonHtkGrpb.Text = $"Toggle Poison State[{KeyToString(new KeyEventArgs(Default.TogglePoisonStateHtk))}]";
         }
 
-        public string KeyToString(KeyEventArgs e) //TODO: Clean this little bit..
+        public string KeyToString(KeyEventArgs e)
         { 
             string returnData = string.Empty;
 
