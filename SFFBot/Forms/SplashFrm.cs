@@ -90,7 +90,7 @@ namespace SFFBot.Dialogs
             HeaderManager.InPlayerWalk = GetHdr("45d53173f4bf410c6f0d57f0fb0edca3");
             HeaderManager.InDropFurniture = GetHdr("e4e3bc19857c5495fcdcff4f36d17d3d");
             HeaderManager.InMoveFurniture = GetHdr("e76f17ac4a9202cf49c2778fc2438654");
-            HeaderManager.InEntitiesLoad = GetHdr("4edb850e832ac9873c9650d68779fc4d");
+            HeaderManager.InEntitiesLoad = GetHdr("9bc4789617fc483c6bf739ab2f8e8419");
             HeaderManager.InShowNotification = GetHdr("823973d6a28dcd0da8954c594b62c54b");
             Hide();
 
