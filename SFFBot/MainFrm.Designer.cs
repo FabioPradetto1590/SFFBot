@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainFrm));
             this.SBMenuStrip = new System.Windows.Forms.MenuStrip();
             this.OptionsMenuStrip = new System.Windows.Forms.ToolStripMenuItem();
+            this.AutoStopCkbx = new System.Windows.Forms.ToolStripMenuItem();
             this.AlwaysOnTopCkbx = new System.Windows.Forms.ToolStripMenuItem();
             this.UseSelectedTileCkbx = new System.Windows.Forms.ToolStripMenuItem();
             this.SBPoisonCkbx = new System.Windows.Forms.ToolStripMenuItem();
@@ -42,17 +43,17 @@
             this.MoveTxt = new System.Windows.Forms.ToolStripMenuItem();
             this.WalkMenuStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.WalkTxt = new System.Windows.Forms.ToolStripMenuItem();
-            this.LoadEntitiesMenuStrip = new System.Windows.Forms.ToolStripMenuItem();
-            this.LoadEntitiesTxt = new System.Windows.Forms.ToolStripMenuItem();
             this.Walk2MenuStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.Walk2Txt = new System.Windows.Forms.ToolStripMenuItem();
             this.SBDelayMenuStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.SB100Ckbx = new System.Windows.Forms.ToolStripMenuItem();
+            this.SB200Ckbx = new System.Windows.Forms.ToolStripMenuItem();
             this.SB400Ckbx = new System.Windows.Forms.ToolStripMenuItem();
             this.SB600Ckbx = new System.Windows.Forms.ToolStripMenuItem();
             this.SB800Ckbx = new System.Windows.Forms.ToolStripMenuItem();
             this.SB1000Ckbx = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.SBCustomDelay = new System.Windows.Forms.ToolStripMenuItem();
             this.CustomDelayOpenDlg = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.SelectTileBtn = new System.Windows.Forms.ToolStripMenuItem();
@@ -76,7 +77,6 @@
             this.MessageTxt = new System.Windows.Forms.Label();
             this.FixPanel = new System.Windows.Forms.Panel();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SBCustomDelay = new System.Windows.Forms.ToolStripMenuItem();
             this.SBMenuStrip.SuspendLayout();
             this.PoisonGrp.SuspendLayout();
             this.StartGrp.SuspendLayout();
@@ -97,6 +97,7 @@
             // OptionsMenuStrip
             // 
             this.OptionsMenuStrip.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.AutoStopCkbx,
             this.AlwaysOnTopCkbx,
             this.UseSelectedTileCkbx,
             this.SBPoisonCkbx,
@@ -113,6 +114,13 @@
             this.OptionsMenuStrip.Name = "OptionsMenuStrip";
             this.OptionsMenuStrip.Size = new System.Drawing.Size(61, 20);
             this.OptionsMenuStrip.Text = "Options";
+            // 
+            // AutoStopCkbx
+            // 
+            this.AutoStopCkbx.Name = "AutoStopCkbx";
+            this.AutoStopCkbx.Size = new System.Drawing.Size(162, 22);
+            this.AutoStopCkbx.Text = "AutoStop";
+            this.AutoStopCkbx.Click += new System.EventHandler(this.AutoStopCkbx_Click);
             // 
             // AlwaysOnTopCkbx
             // 
@@ -149,7 +157,6 @@
             this.DropMenuStrip,
             this.MoveMenuStrip,
             this.WalkMenuStrip,
-            this.LoadEntitiesMenuStrip,
             this.Walk2MenuStrip});
             this.SBHeadersMenuStrip.Name = "SBHeadersMenuStrip";
             this.SBHeadersMenuStrip.Size = new System.Drawing.Size(162, 22);
@@ -197,20 +204,6 @@
             this.WalkTxt.Size = new System.Drawing.Size(80, 22);
             this.WalkTxt.Text = "0";
             // 
-            // LoadEntitiesMenuStrip
-            // 
-            this.LoadEntitiesMenuStrip.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.LoadEntitiesTxt});
-            this.LoadEntitiesMenuStrip.Name = "LoadEntitiesMenuStrip";
-            this.LoadEntitiesMenuStrip.Size = new System.Drawing.Size(180, 22);
-            this.LoadEntitiesMenuStrip.Text = "[CS] Load Entities";
-            // 
-            // LoadEntitiesTxt
-            // 
-            this.LoadEntitiesTxt.Name = "LoadEntitiesTxt";
-            this.LoadEntitiesTxt.Size = new System.Drawing.Size(80, 22);
-            this.LoadEntitiesTxt.Text = "0";
-            // 
             // Walk2MenuStrip
             // 
             this.Walk2MenuStrip.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -229,6 +222,7 @@
             // 
             this.SBDelayMenuStrip.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SB100Ckbx,
+            this.SB200Ckbx,
             this.SB400Ckbx,
             this.SB600Ckbx,
             this.SB800Ckbx,
@@ -246,6 +240,13 @@
             this.SB100Ckbx.Size = new System.Drawing.Size(153, 22);
             this.SB100Ckbx.Text = "100 (ms)";
             this.SB100Ckbx.Click += new System.EventHandler(this.SB100Ckbx_Click);
+            // 
+            // SB200Ckbx
+            // 
+            this.SB200Ckbx.Name = "SB200Ckbx";
+            this.SB200Ckbx.Size = new System.Drawing.Size(153, 22);
+            this.SB200Ckbx.Text = "200 (ms)";
+            this.SB200Ckbx.Click += new System.EventHandler(this.SB200Ckbx_Click);
             // 
             // SB400Ckbx
             // 
@@ -279,6 +280,14 @@
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(150, 6);
+            // 
+            // SBCustomDelay
+            // 
+            this.SBCustomDelay.Name = "SBCustomDelay";
+            this.SBCustomDelay.Size = new System.Drawing.Size(153, 22);
+            this.SBCustomDelay.Text = "0 (ms)";
+            this.SBCustomDelay.Visible = false;
+            this.SBCustomDelay.Click += new System.EventHandler(this.SBCustomDelay_Click);
             // 
             // CustomDelayOpenDlg
             // 
@@ -337,14 +346,14 @@
             // SBAboutButton
             // 
             this.SBAboutButton.Name = "SBAboutButton";
-            this.SBAboutButton.Size = new System.Drawing.Size(152, 22);
+            this.SBAboutButton.Size = new System.Drawing.Size(133, 22);
             this.SBAboutButton.Text = "Help";
             this.SBAboutButton.Click += new System.EventHandler(this.SBAboutButton_Click);
             // 
             // ReportMenuItem
             // 
             this.ReportMenuItem.Name = "ReportMenuItem";
-            this.ReportMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ReportMenuItem.Size = new System.Drawing.Size(133, 22);
             this.ReportMenuItem.Text = "Bug Report";
             this.ReportMenuItem.Click += new System.EventHandler(this.ReportMenuItem_Click);
             // 
@@ -427,12 +436,12 @@
             this.VersionTxt.ActiveLinkColor = System.Drawing.Color.Indigo;
             this.VersionTxt.AutoSize = true;
             this.VersionTxt.LinkColor = System.Drawing.Color.DodgerBlue;
-            this.VersionTxt.Location = new System.Drawing.Point(7, 141);
+            this.VersionTxt.Location = new System.Drawing.Point(3, 141);
             this.VersionTxt.Name = "VersionTxt";
-            this.VersionTxt.Size = new System.Drawing.Size(28, 13);
+            this.VersionTxt.Size = new System.Drawing.Size(37, 13);
             this.VersionTxt.TabIndex = 8;
             this.VersionTxt.TabStop = true;
-            this.VersionTxt.Text = "v0.1";
+            this.VersionTxt.Text = "v4.2.0";
             this.VersionTxt.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.VersionTxt_LinkClicked);
             // 
             // Sep
@@ -466,9 +475,9 @@
             // 
             // FixPanel
             // 
-            this.FixPanel.Location = new System.Drawing.Point(0, 27);
+            this.FixPanel.Location = new System.Drawing.Point(0, -32);
             this.FixPanel.Name = "FixPanel";
-            this.FixPanel.Size = new System.Drawing.Size(272, 105);
+            this.FixPanel.Size = new System.Drawing.Size(272, 167);
             this.FixPanel.TabIndex = 13;
             // 
             // optionsToolStripMenuItem
@@ -476,15 +485,6 @@
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
-            // 
-            // SBCustomDelay
-            // 
-            this.SBCustomDelay.CheckOnClick = true;
-            this.SBCustomDelay.Name = "SBCustomDelay";
-            this.SBCustomDelay.Size = new System.Drawing.Size(153, 22);
-            this.SBCustomDelay.Text = "0 (ms)";
-            this.SBCustomDelay.Visible = false;
-            this.SBCustomDelay.Click += new System.EventHandler(this.SBCustomDelay_Click);
             // 
             // MainFrm
             // 
@@ -562,14 +562,14 @@
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SelectTileBtn;
         private System.Windows.Forms.ToolStripMenuItem UseSelectedTileCkbx;
-        private System.Windows.Forms.ToolStripMenuItem LoadEntitiesMenuStrip;
-        private System.Windows.Forms.ToolStripMenuItem LoadEntitiesTxt;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem OpenSettingsBtn;
         private System.Windows.Forms.ToolStripMenuItem OpenHotkeysBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem CustomDelayOpenDlg;
         private System.Windows.Forms.ToolStripMenuItem SBCustomDelay;
+        private System.Windows.Forms.ToolStripMenuItem AutoStopCkbx;
+        private System.Windows.Forms.ToolStripMenuItem SB200Ckbx;
     }
 }
 

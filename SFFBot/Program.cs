@@ -10,7 +10,7 @@ namespace SFFBot
 {
     static class Program
     {
-        public static string Version = "0.0.4";
+        public static string Version = "0.0.5";
         
         /// <summary>
         /// The main entry point for the application.
@@ -20,7 +20,7 @@ namespace SFFBot
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
+            
             Application.Run(new SplashFrm());
         }
     }

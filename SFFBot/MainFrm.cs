@@ -18,49 +18,57 @@ using Transitions;
 using Sulakore.Habbo;
 using Sulakore.Communication;
 using Sulakore;
+using System.IO;
+using Sulakore.Habbo.Headers;
+using System.Text;
 
 namespace SFFBot
 {
     public partial class MainFrm : ExtensionForm
     {
-        public readonly Dictionary<Action, Keys> Hotkeys = new Dictionary<Action, Keys>();
-        public bool isPoisonRunning, isRunning, isHtkNoticeShowed;
-        public KeyboardHook HotkeyHook { get; }
-        public int CustomDelay = 0;
-
-        private List<SPoisonFurni> _furnitureList = new List<SPoisonFurni>();
+        private List<SFurni> _placedFurnitures = new List<SFurni>();
         private List<SStatus> _currStatuses = new List<SStatus>();
+        private List<SFurni> _furnitureList = new List<SFurni>();
         private List<ToolStripMenuItem> _delayCheckeds;
         private List<Control> _bottomControls;
         private HotkeyManager _htkManager;
-       
+        private SFurni _selFurni;
         private SplashFrm _main;
+        private int _delay, _ourIndex = -1;
 
-        private bool _isSelectingTile;
-        private HPoint _selectedTile = null;
-        private bool _canGo;
-        private int _delay;
+        private bool _autoStopEnabled, _isSelectingTile,
+            _canGo, _needsToWalk, _enableAutoStopAfterWalk, 
+            _isPoisonRunning, _isRunning, _isHtkNoticeShowed;
+
+        private HPoint _selectedTile, _ourLocation = null;
+        
+        public readonly Dictionary<Action, Keys> Hotkeys = new Dictionary<Action, Keys>();
+        public KeyboardHook HotkeyHook { get; set; }
+        public int CustomDelay = 0;
 
         public MainFrm(SplashFrm main)
         {
             InitializeComponent();
             _main = main;
 
+            #region Control Lists
             _delayCheckeds = new List<ToolStripMenuItem>{
-                SB100Ckbx, SB400Ckbx, SB600Ckbx,SB800Ckbx,
+                SB100Ckbx, SB200Ckbx, SB400Ckbx, SB600Ckbx, SB800Ckbx,
                 SB1000Ckbx, SBCustomDelay };
 
             _bottomControls = new List<Control>{
                 VersionTxt, Sep, GithubLnk };
+            #endregion
 
-            HotkeyHook = new KeyboardHook();
-            HotkeyHook.HotkeyActivated += HotkeyActivated;
+            _main.Triggers.InAttach(Incoming.Global.HeightMap, HandleNewRoom);
+            _main.Triggers.InAttach(Incoming.Global.UserUpdate, HandlePlayerWalk);
+            _main.Triggers.InAttach(Incoming.Global.ObjectRemove, HandlePickUp);
 
             _htkManager = new HotkeyManager(this);
-            _htkManager.LoadHotkeys();
+            _htkManager.Init();
         }
 
-        private void HotkeyActivated(object sender, KeyEventArgs e)
+        public void HotkeyActivated(object sender, KeyEventArgs e)
         {
             if (Hotkeys.ContainsValue(e.KeyData))
                 Hotkeys.FirstOrDefault(s => s.Value == e.KeyData).Key();
@@ -68,38 +76,104 @@ namespace SFFBot
 
         #region Bot functions
 
-        public async void HandleFurniture(DataInterceptedEventArgs e)
+        private void HandlePlayerWalk(DataInterceptedEventArgs e)
         {
-            if (!isRunning) return;
+            var walks = SHabboWalk.Parse(e.Packet);
 
-            CheckTool(e.Packet.ReadInteger(4));
+            foreach (var walk in walks)
+            {
+                if (_needsToWalk && walk.isOurHabbo)
+                {
+                    if (walk.MovingTo != null)
+                        _ourLocation = walk.MovingTo;
+                    else return;
 
-            if (!_canGo) return;
+                    _needsToWalk = false;
 
-            int X = e.Packet.ReadInteger(8), Y = e.Packet.ReadInteger(12);
+                    if (_enableAutoStopAfterWalk)
+                    {
+                        Invoke(new MethodInvoker(() => AutoStopCkbx.PerformClick()));
+                        _enableAutoStopAfterWalk = false;
+
+                        ShowNotificationAsync(1, "AutoStop is enabled again!");
+                    }
+                }
+                else if (!_autoStopEnabled) return;
+
+                if (!walk.isOurHabbo && _placedFurnitures.Count > 0)
+                {
+                    if (walk.MovingTo.IsSame(_selFurni.Location))
+                    {
+                        _placedFurnitures.RemoveAll(a => a.Location.IsSame(_selFurni.Location));
+                        _selFurni = null;
+                        
+                        ShowNotificationAsync(1, "Another Habbo got in our selected furniture!\rWaiting for new..");
+                    }
+                    else if(_placedFurnitures.Any(a => a.Location.IsSame(walk.MovingTo)))
+                        _placedFurnitures.Remove(_placedFurnitures.Find(a => a.Location.IsSame(walk.MovingTo)));
+                }
+
+                if (walk.MovingTo != null)
+                    _ourLocation = walk.MovingTo;
+
+                if (_placedFurnitures.Count < 1)
+                    return;
+
+                if (_ourLocation.IsSame(_selFurni.Location))
+                {
+                    _selFurni = null;
+                    ShowNotificationAsync(1, "We reached our furni!");
+
+                    _placedFurnitures.Clear();
+                    ToggleBotState(false);
+                }
+            }
+        }
+
+        private async void HandleFurnitureAsync(DataInterceptedEventArgs e)
+        {
+            SFurni furni = new SFurni(e.Packet.ReadInteger(), e.Packet.ReadInteger(),
+                new HPoint(e.Packet.ReadInteger(), e.Packet.ReadInteger()), false);
+
+            CheckTool(furni.TypeId);
+
+            if (!_canGo)
+                return;
 
             if (UseSelectedTileCkbx.Checked)
             {
-                if (_selectedTile.X != X || _selectedTile.Y != Y) return;
+                if (!_selectedTile.IsSame(furni.Location))
+                    return;
                 else
-                    ShowNotification(1, "Furniture placed to selected Tile!");
+                    ShowNotificationAsync(1, "Furniture placed to selected Tile!");
             }
-            
-            foreach (var checkeds in _delayCheckeds.Where(c => c.Checked))
+
+            if (_selFurni == null && _autoStopEnabled)
+            {
+                _selFurni = furni;
+                ShowNotificationAsync(1, $"Selected: {furni.UniqueId}");
+            }
+
+            HandleFurni(furni);
+
+            if (_autoStopEnabled && (_selFurni.UniqueId != furni.UniqueId && _selFurni != null) || !_isRunning)
+                return;
+
+            if(_delayCheckeds.Exists(a => a.Checked))
                 await Task.Delay(_delay);
 
-            await _main.Connection.SendToServerAsync(HeaderManager.OutPlayerWalk, X, Y);
+            await _main.Connection.SendToServerAsync(Outgoing.Global.MoveAvatar, furni.Location.X, furni.Location.Y);
         }
-
-        public void HandleTileSelecting(DataInterceptedEventArgs e)
+        private void HandleTileSelecting(DataInterceptedEventArgs e)
         {
             if (!_isSelectingTile) return;
 
-            int X = e.Packet.ReadInteger(), Y = e.Packet.ReadInteger();
+            int X = e.Packet.ReadInteger(),
+                Y = e.Packet.ReadInteger();
 
             _selectedTile = new HPoint(X, Y);
 
-            ShowNotification(1, $"Tile selected!\rX: {X} Y: {Y}");
+            ShowNotificationAsync(1, $"Tile selected!\rX: {X} Y: {Y}");
 
             e.IsBlocked = true;
             _isSelectingTile = false;
@@ -110,13 +184,56 @@ namespace SFFBot
                 UseSelectedTileCkbx.Enabled = true;
             }));
         }
+        private void HandleNewRoom(DataInterceptedEventArgs e)
+        {
+            _ourIndex = -1;
 
-        public async void ShowNotification(int Type, string message)
+            if (_autoStopEnabled)
+            {
+
+
+
+                Invoke(new MethodInvoker(() => AutoStopCkbx.PerformClick()));
+                _enableAutoStopAfterWalk = true;
+
+                ShowNotificationAsync(1, "AutoStop is disabled until you move your character.");
+            }
+
+            _placedFurnitures.Clear();
+            _needsToWalk = true;
+        }
+        private void HandlePickUp(DataInterceptedEventArgs e)
+        {
+            _placedFurnitures.RemoveAll(a => a.UniqueId == int.Parse(e.Packet.ReadString()));
+        }
+        private async void HandlePlayerSayAsync(DataInterceptedEventArgs e)
+        {
+            e.Packet.ReadString();
+            e.Packet.ReadInteger();
+            e.Packet.ReplaceInteger(1397769537); //SPEA
+
+       //     _main.Triggers.InAttach(Incoming.Global.Chat, )
+
+            bool gotIndex = await WaitForUserIndex();
+        }
+
+        private async Task<bool> WaitForUserIndex()
+        {
+            bool succeeded = false;
+            while (!succeeded)
+            {
+                succeeded = (_ourIndex != -1);
+                await Task.Delay(500);
+            }
+            return succeeded;
+        }
+
+        public async void ShowNotificationAsync(int Type, string message)
         {
             switch (Type)
             {
                 case 1:
-                    await _main.Connection.SendToClientAsync(HeaderManager.InShowNotification, "furni_placement_error", 1, "message", message);
+                    await _main.Connection.SendToClientAsync(Incoming.Global.RoomNotification, "furni_placement_error", 1, "message", message);
                     break;
                 case 2:
                     Invoke(new MethodInvoker(() =>
@@ -126,98 +243,15 @@ namespace SFFBot
                     break;
             }
         }
-
         #endregion
 
-        public void ShowNotification(SStatus status)
-        {
-            Transition t1 = new Transition(new TransitionType_Linear(750));
-            t1.add(MessageTxt, "Top", 141);
-
-            if (_currStatuses.Any(a => a.IsShowed))
-            {
-                _currStatuses.Where(a => a.IsShowed).ToList().ForEach(statuz =>
-                    {
-                        if (statuz.TypeID == status.TypeID)
-                        {
-                            statuz.Times++;
-                            MessageTxt.Text = $"{statuz.Message} ({statuz.Times}x)";
-                            t1.add(MessageTxt, "ForeColor", statuz.TextColor);
-                        }
-                        else
-                        {
-                            status.IsShowed = true;
-                            _currStatuses.Add(status);
-                            MessageTxt.Text += $" | {status.Message}";
-                        }
-                    });
-            }
-            else
-            {
-                status.IsShowed = true;
-                MessageTxt.Text = status.Message;
-                _currStatuses.Add(status);
-                t1.add(MessageTxt, "ForeColor", status.TextColor);
-
-                if (Sep.Location.Y > 108)
-                    _bottomControls.RunTransition(750, "Top", Sep.Location.Y, false);
-            }
-
-            t1.run();
-
-            t1.TransitionCompletedEvent += async (s, e) =>
-            {
-                await Task.Delay(_currStatuses.Sum(x => x.Time));
-
-                Transition t2 = new Transition(new TransitionType_Linear(status.ScrollTime));
-                t2.add(MessageTxt, "Left", MessageTxt.Location.X - (MessageTxt.Width + 10));
-                t2.run();
-
-                t2.TransitionCompletedEvent += (a, b) =>
-                {
-                    _currStatuses.Clear();
-
-                    Invoke(new MethodInvoker(() =>
-                    {
-                        MessageTxt.Location = new Point(10, 177); 
-                        MessageTxt.ForeColor = SystemColors.ControlText;
-                    }));
-
-                    _bottomControls.RunTransition(750, "Top", 138 - Sep.Location.Y, true);
-
-                    if (!_currStatuses.Any())
-                        MessageTxt.Text = string.Empty;
-                };
-            };
-        }
-
         #region Form Actions
-
-        private void SelectTileBtn_Click(object sender, EventArgs e)
-        {
-            if (_isSelectingTile)
-            {
-                _isSelectingTile = false;
-                SelectTileBtn.Text = "Select Tile";
-                ShowNotification(1, "Tile selecting cancelled!");
-
-                _main.Triggers.OutDetach(HeaderManager.OutPlayerWalk);
-            }
-            else
-            {
-                _isSelectingTile = true;
-                SelectTileBtn.Text = "Cancel Tile Selecting";
-                ShowNotification(1, "Select a tile!");
-
-                _main.Triggers.OutAttach(HeaderManager.OutPlayerWalk, HandleTileSelecting);
-            }
-        }
-
         private async void SBMain_Load(object sender, EventArgs e)
         {
             Task loadFurniTask = LoadFurniDataAsync();
 
             Text = $"SFFBot - v{Program.Version}";
+            VersionTxt.Text = $"v{Program.Version}";
 
             StartGrp.Location = new Point(-252, 79);
             PoisonGrp.Location = new Point(11, -23);
@@ -229,12 +263,11 @@ namespace SFFBot
                 new TArgument(PoisonGrp, "Top", 27),
                 new TArgument(StartGrp, "Left", 11)});
 
-            ShowNotification(new SStatus(0, 1250, 3000,
+            ShowNotificationAsync(new SStatus(0, 1250, 3000,
                $"Welcome to SFFBot v{Program.Version}! ", SystemColors.ControlText));
 
             await loadFurniTask;
         }
-
         private void SBMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             Default.TopMost = AlwaysOnTopCkbx.Checked;
@@ -242,74 +275,102 @@ namespace SFFBot
             _main.Close();
         }
 
+
+        private void SelectTileBtn_Click(object sender, EventArgs e)
+        {
+            if (_isSelectingTile)
+            {
+                _isSelectingTile = false;
+                SelectTileBtn.Text = "Select Tile";
+                ShowNotificationAsync(1, "Tile selecting cancelled!");
+
+                _main.Triggers.OutDetach(Outgoing.Global.MoveAvatar);
+            }
+            else
+            {
+                _isSelectingTile = true;
+                SelectTileBtn.Text = "Cancel Tile Selecting";
+                ShowNotificationAsync(1, "Select a tile!");
+
+                _main.Triggers.OutAttach(Outgoing.Global.MoveAvatar, HandleTileSelecting);
+            }
+        }
         private void SBAboutButton_Click(object sender, EventArgs e)
         {
             var frm = new AboutFrm();
             frm.ShowDialog();
         }
-
         private void SBAlwaysOnTopCkbx_Click(object sender, EventArgs e)
         {
             TopMost = AlwaysOnTopCkbx.Checked;
         }
-
         public void SBPoisonCkbx_Click(object sender, EventArgs e)
         {
-            isPoisonRunning = !isPoisonRunning;
+            _isPoisonRunning = !_isPoisonRunning;
         }
-
         private void OpenSettingsBtn_Click(object sender, EventArgs e)
         {
             var frm = new SettingsFrm();
             frm.Show();
         }
-
         private void CustomDelayOpenDlg_Click(object sender, EventArgs e)
         {
             var frm = new SelectDelayFrm(this);
             frm.Show();
         }
-
         private void OpenHotkeysBtn_Click(object sender, EventArgs e)
         {
-            if(!isHtkNoticeShowed)
+            if(!_isHtkNoticeShowed)
                 MessageBox.Show("It is recommended to set hotkeys to keys that you're not using or there may come problems!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-            isHtkNoticeShowed = true;
+            _isHtkNoticeShowed = true;
 
             var frm = new HotkeyFrm(this);
             frm.Show();
             frm.Activate();
         }
-
         private void SBStartBotBtn_Click(object sender, EventArgs e)
         {
             ToggleBotState();
         }
-
         private void SBAddPoisonBtn_Click(object sender, EventArgs e)
         {
             string selTxt = PoisonListCbbx?.SelectedItem?.ToString();
 
             if (string.IsNullOrEmpty(selTxt))
             {
-                ShowNotification(new SStatus(2, 3000, 2500,
+                ShowNotificationAsync(new SStatus(2, 3000, 2500,
                         "You need to select furni to from list first to poison it!", Color.DarkRed));
                 return;
             }
 
-            var poisonFurni = _furnitureList.Find(p => p.FurniId == selTxt.ToPoisonFurni().FurniId);
+            var poisonFurni = _furnitureList.Where(p => p.TypeId == selTxt.ToPoisonFurni().TypeId).First();
+
+            if (poisonFurni == null)
+                return;
 
             if (poisonFurni.IsPoisoned)
-                ShowNotification(new SStatus(2, 4000, 3000, "Sorry you already have poisoned this furniture..", Color.DarkRed));
+                ShowNotificationAsync(new SStatus(2, 4000, 3000, "Sorry you already have poisoned this furniture..", Color.DarkRed));
             else
             {
-                ShowNotification(new SStatus(2, 3000, 2000, $"Furniture \"{poisonFurni.Name}\" is poisoned!", Color.MediumVioletRed));
+                ShowNotificationAsync(new SStatus(2, 3000, 2000, $"Furniture \"{poisonFurni.Name}\" is poisoned!", Color.MediumVioletRed));
                 poisonFurni.IsPoisoned = true;
                 PoisonListCbbx.ResetText();
             }
 
             PoisonGrp.Text = $"Poison List ({_furnitureList.FindAll(s => s.IsPoisoned).Count})";
+        }
+        private void ReportMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Clyde waz here.", "Info - Nothing here yet.", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        }
+        private void AutoStopCkbx_Click(object sender, EventArgs e)
+        {
+            AutoStopCkbx.Checked = !AutoStopCkbx.Checked;
+            _autoStopEnabled = !_autoStopEnabled;
+
+            if (!_enableAutoStopAfterWalk)
+                HandleNewRoom(null);
         }
 
         List<string> list;
@@ -321,14 +382,14 @@ namespace SFFBot
             if (string.IsNullOrWhiteSpace(selTxt))
             {
                 if (e.KeyChar == (char)Keys.Enter)
-                    PoisonListCbbx.DataSource = _furnitureList.Cast<SPoisonFurni>().Select(s => s.ToString()).ToList();
+                    PoisonListCbbx.DataSource = _furnitureList.Cast<SFurni>().Select(s => s.ToString()).ToList();
                 return;
             }
 
-            List<string> furnitures = _furnitureList.Cast<SPoisonFurni>().Select(s => s.ToString()).ToList();
+            List<string> furnitures = _furnitureList.Cast<SFurni>().Select(s => s.ToString()).ToList();
 
             if (char.IsNumber(selTxt[0]) && int.TryParse(selTxt, out i))
-                list = furnitures.FindAll(s => s.ToPoisonFurni().FurniId == i).ToList();
+                list = furnitures.FindAll(s => s.ToPoisonFurni().TypeId == i).ToList();
 
             if (char.IsLetter(selTxt[0]))
                 list = furnitures.FindAll(s => s.ToPoisonFurni().Name.Contains(selTxt)).ToList();
@@ -336,7 +397,6 @@ namespace SFFBot
             if (e.KeyChar == (char)Keys.Enter)
                 PoisonListCbbx.DataSource = list;
         }
-
         private void SBClearPoisonBtn_Click(object sender, EventArgs e)
         {
             PoisonGrp.Text = "Poison List (0)";
@@ -347,15 +407,9 @@ namespace SFFBot
         {
             Process.Start("https://github.com/Speaqer/SFFBot");
         }
-
         private void VersionTxt_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("https://github.com/Speaqer/SFFBot/releases/tag/v" + Program.Version);
-        }
-
-        private void ReportMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Clyde waz here.", "Info - Nothing here yet.", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
 
         #region Thread-Safe
@@ -386,31 +440,28 @@ namespace SFFBot
             else this.Invoke((MethodInvoker)(() => base.Hide()));
         }
         #endregion
-
         #endregion
 
         #region DelayCheckings
         private void SelectDelayTime(ToolStripMenuItem item, int delay)
         {
-            if (item.Checked)
+            _delayCheckeds.ForEach(a => a.Checked = false);
+
+            if (!item.Checked)
             {
-                foreach (var checkeds in _delayCheckeds)
-                    checkeds.Checked = false;
-                item.Checked = false;
-            }
-            else
-            {
-                foreach (var checkeds in _delayCheckeds)
-                    checkeds.Checked = false;
                 item.Checked = true;
+                ShowNotificationAsync(1, $"Delay time set to {delay}ms");
             }
-            ShowNotification(1, $"Delay time set to {delay}ms");
             _delay = delay;
         }
 
         private void SB100Ckbx_Click(object sender, EventArgs e)
         {
             SelectDelayTime(SB100Ckbx, 100);
+        }
+        private void SB200Ckbx_Click(object sender, EventArgs e)
+        {
+            SelectDelayTime(SB200Ckbx, 200);
         }
         private void SB400Ckbx_Click(object sender, EventArgs e)
         {
@@ -428,7 +479,6 @@ namespace SFFBot
         {
             SelectDelayTime(SB1000Ckbx, 1000);
         }
-
         private void SBCustomDelay_Click(object sender, EventArgs e)
         {
             SelectDelayTime(SBCustomDelay, CustomDelay);
@@ -436,101 +486,163 @@ namespace SFFBot
         #endregion
 
         #region Functions
-
         public void ToggleBotState()
         {
-            if (!isRunning)
-            {
-                isRunning = true;
-                StartBtn.Text = "Stop";
-                StartGrp.Text = "Start Options (Running)";
-
-                _main.Triggers.InAttach(HeaderManager.InDropFurniture, HandleFurniture);
-                _main.Triggers.InAttach(HeaderManager.InMoveFurniture, HandleFurniture);
-            }
-            else
-            {
-                isRunning = false;
-                StartBtn.Text = "Start";
-                StartGrp.Text = "Start Options (Stopped)";
-
-                _main.Triggers.InDetach(HeaderManager.InDropFurniture);
-                _main.Triggers.InDetach(HeaderManager.InMoveFurniture);
-            }
+            ToggleBotState(_isRunning ? false : true);
         }
 
+        public void ToggleBotState(bool toRunning, bool showNotif = true)
+        {
+            Invoke((MethodInvoker)delegate
+            {
+                if (toRunning)
+                {
+                    _isRunning = true;
+                    StartBtn.Text = "Stop";
+                    StartGrp.Text = "Start Options (Running)";
+                    if(showNotif)
+                        ShowNotificationAsync(1, "SFFBot is running!");
+
+                    _main.Triggers.InAttach(Incoming.Global.ObjectAdd, HandleFurnitureAsync);
+                    _main.Triggers.InAttach(Incoming.Global.ObjectUpdate, HandleFurnitureAsync);
+                }
+                else
+                {
+                    _isRunning = false;
+                    StartBtn.Text = "Start";
+                    StartGrp.Text = "Start Options (Stopped)";
+                    if (showNotif)
+                        ShowNotificationAsync(1, "SFFBot is stopped!");
+
+                    _main.Triggers.InDetach(Incoming.Global.ObjectAdd);
+                    _main.Triggers.InDetach(Incoming.Global.ObjectUpdate);
+                }
+            });
+        }
         public void TogglePoisonState()
         {
-            if (isPoisonRunning)
-            {
-                isPoisonRunning = false;
-                SBPoisonCkbx.Checked = false;
-            }
-            else
-            {
-                isPoisonRunning = true;
-                SBPoisonCkbx.Checked = true;
-            }
+            _isPoisonRunning = SBPoisonCkbx.Checked = (_isPoisonRunning ? false : true);
         }
-
         public void SetCustomDelay(int delay)
         {
-            if (delay == 0)
-                SBCustomDelay.Visible = false;
-            else
-                SBCustomDelay.Visible = true;
+            SBCustomDelay.Visible = (delay == 0 ? false : true);
 
             SBCustomDelay.Text = $"{delay} (ms)";
             CustomDelay = delay;
         }
 
-        private void ShowHeaders()
+        public void ShowNotificationAsync(SStatus status)
         {
-            WalkTxt.Text = HeaderManager.OutPlayerWalk.ToString();
-            Walk2Txt.Text = HeaderManager.InPlayerWalk.ToString();
-            DropTxt.Text = HeaderManager.InDropFurniture.ToString();
-            MoveTxt.Text = HeaderManager.InMoveFurniture.ToString();
-            LoadEntitiesTxt.Text = HeaderManager.InEntitiesLoad.ToString();
+            Transition t1 = new Transition(new TransitionType_Linear(750));
+            t1.add(MessageTxt, "Top", 141);
+
+            if (_currStatuses.Any(a => a.IsShowed))
+            {
+                _currStatuses.FindAll(a => a.IsShowed).ForEach(statuz =>
+                {
+                    if (statuz.TypeID == status.TypeID)
+                    {
+                        statuz.Times++;
+                        MessageTxt.Text = $"{statuz.Message} ({statuz.Times}x)";
+                        t1.add(MessageTxt, "ForeColor", statuz.TextColor);
+                    }
+                    else
+                    {
+                        status.IsShowed = true;
+                        _currStatuses.Add(status);
+                        MessageTxt.Text += $" | {status.Message}";
+                    }
+                });
+            }
+            else
+            {
+                status.IsShowed = true;
+                MessageTxt.Text = status.Message;
+                _currStatuses.Add(status);
+                t1.add(MessageTxt, "ForeColor", status.TextColor);
+
+                if (Sep.Location.Y > 108)
+                    _bottomControls.RunTransition(750, "Top", Sep.Location.Y, false);
+            }
+
+            t1.run();
+
+            t1.TransitionCompletedEvent += async (s, e) =>
+            {
+                await Task.Delay(_currStatuses.Sum(x => x.Time));
+
+                Transition t2 = new Transition(new TransitionType_Linear(status.ScrollTime));
+                t2.add(MessageTxt, "Left", MessageTxt.Location.X - (MessageTxt.Width + 10));
+                t2.run();
+
+                t2.TransitionCompletedEvent += (a, b) =>
+                {
+                    _currStatuses.Clear();
+
+                    Invoke(new MethodInvoker(() =>
+                    {
+                        MessageTxt.Location = new Point(10, 177);
+                        MessageTxt.ForeColor = SystemColors.ControlText;
+                    }));
+
+                    _bottomControls.RunTransition(750, "Top", 138 - Sep.Location.Y, true);
+
+                    if (!_currStatuses.Any())
+                        MessageTxt.Text = string.Empty;
+                };
+            };
         }
 
+        private void ShowHeaders()
+        {
+            WalkTxt.Text = Outgoing.Global.MoveAvatar.ToString();
+            Walk2Txt.Text = Incoming.Global.UserUpdate.ToString();
+            DropTxt.Text = Incoming.Global.ObjectAdd.ToString();
+            MoveTxt.Text = Incoming.Global.ObjectUpdate.ToString();
+        }
+        private void HandleFurni(SFurni furni)
+        {
+            bool exists = _placedFurnitures.Exists(a => a.UniqueId == furni.UniqueId);
+
+            if (exists)
+                _placedFurnitures.Where(a => a.UniqueId == furni.UniqueId).First().Location = furni.Location;
+            else
+                _placedFurnitures.Add(furni);    
+        }
         private void CheckTool(int id)
         {
             bool canadd = true;
 
             if (SBPoisonCkbx.Checked)
-                if (_furnitureList.Any(s => s.FurniId == id && s.IsPoisoned)) canadd = false;
+                if (_furnitureList.Any(s => s.TypeId == id && s.IsPoisoned)) canadd = false;
 
-            ShowNotification(2, canadd ? $"{id}: Clean!" : $"{id}: Poisoned!");
+            ShowNotificationAsync(2, $"{id}: {(canadd ? "Clean!" : "Poisoned")}");
 
             _canGo = canadd;
         }
 
         private async Task LoadFurniDataAsync()
         {
-            XmlDocument furni = new XmlDocument();
-
+            var furni = new XmlDocument();
             using (var wc = new WebClient())
             {
                 wc.Headers.Add("User-Agent", SKore.ChromeAgent);
-                Uri url = new Uri($"{_main.Hotel.ToUrl(true)}/gamedata/furnidata_xml/1");
-                furni.LoadXml(await wc.DownloadStringTaskAsync(url));
+                wc.Encoding = Encoding.UTF8;
+                furni.LoadXml(await wc.DownloadStringTaskAsync(new Uri($"{_main.Hotel.ToUrl(true)}/gamedata/furnidata_xml/1")));
             }
 
-            XmlNodeList itemNodes = furni.GetElementsByTagName("furnitype");
+            var itemNodes = furni.GetElementsByTagName("furnitype");
 
             foreach (XmlNode item in itemNodes)
             {
                 var id = item.Attributes["id"]?.InnerText;
                 var name = item["name"]?.InnerText;
-
                 var canGo = (item["cansiton"]?.InnerText == "1") ||
                             (item["canstandon"]?.InnerText == "1") ||
                             (item["canlayon"]?.InnerText == "1");
-
                 if (canGo)
-                    _furnitureList.Add(new SPoisonFurni(int.Parse(id), name, false));
+                    _furnitureList.Add(new SFurni(int.Parse(id), name, false));
             }
-
             PoisonListCbbx.Items.AddRange(_furnitureList.ToArray());
             PoisonListCbbx.Enabled = true;
             PoisonListCbbx.ResetText();

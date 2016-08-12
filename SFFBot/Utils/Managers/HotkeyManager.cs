@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFFBot.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,19 +18,25 @@ namespace SFFBot
             _main = main;
         }
 
+        public void Init()
+        {
+            _main.HotkeyHook = new KeyboardHook();
+            _main.HotkeyHook.HotkeyActivated += _main.HotkeyActivated;
+            LoadHotkeys();
+        }
+
         public void LoadHotkeys()
         {
             SetHotkey(new KeyEventArgs(Default.ToggleBotStateHtk), _main.ToggleBotState);
             SetHotkey(new KeyEventArgs(Default.TogglePoisonStateHtk), _main.TogglePoisonState);
         }
+
         public void SetHotkey(KeyEventArgs e, Action act)
         {
-            
             if (_main.Hotkeys.ContainsKey(act))
             {
                 _main.HotkeyHook.UnregisterHotkey(e.KeyData);
                 _main.HotkeyHook.RegisterHotkey(e.KeyData);
-
                 _main.Hotkeys[act] = e.KeyData;
             }
             else

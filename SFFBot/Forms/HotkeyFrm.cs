@@ -30,11 +30,13 @@ namespace SFFBot.Dialogs
 
         private void HotkeyFrm_Load(object sender, EventArgs e)
         {
-            ToggleBotStateHtkBox.Value = KeyToString(new KeyEventArgs(Default.ToggleBotStateHtk));
-            BotToggleGrpb.Text = $"Toggle Bot State [{KeyToString(new KeyEventArgs(Default.ToggleBotStateHtk))}]";
+            var args = new KeyEventArgs(Default.ToggleBotStateHtk);
+            ToggleBotStateHtkBox.Value = KeyToString(args);
+            BotToggleGrpb.Text = $"Toggle Bot State [{KeyToString(args)}]";
 
-            TogglePoisonStateHtkBox.Value = KeyToString(new KeyEventArgs(Default.TogglePoisonStateHtk));
-            PoisonHtkGrpb.Text = $"Toggle Poison State[{KeyToString(new KeyEventArgs(Default.TogglePoisonStateHtk))}]";
+            var argss = new KeyEventArgs(Default.TogglePoisonStateHtk);
+            TogglePoisonStateHtkBox.Value = KeyToString(argss);
+            PoisonHtkGrpb.Text = $"Toggle Poison State[{KeyToString(argss)}]";
         }
 
         public string KeyToString(KeyEventArgs e)
@@ -60,7 +62,7 @@ namespace SFFBot.Dialogs
             Default.ToggleBotStateHtk = e.KeyData;
             Default.Save();
 
-            _htkMngr.SetHotkey(e,_main.ToggleBotState);
+            _htkMngr.SetHotkey(e, _main.ToggleBotState);
             
             ToggleBotStateHtkBox.Value = KeyToString(e);
             BotToggleGrpb.Text = $"Toggle Bot State [{KeyToString(e)}]";

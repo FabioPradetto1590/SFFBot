@@ -54,12 +54,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FlashInspect">
-      <HintPath>..\..\Tanji\Versiot\v1.4.380 [PRE-REL]\FlashInspect.dll</HintPath>
-    </Reference>
-    <Reference Include="Sulakore, Version=8.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="FlashInspect, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Tanji\Versiot\v1.4.380 [PRE-REL]\Sulakore.dll</HintPath>
+      <HintPath>..\..\tanji\Tanji\bin\Debug\FlashInspect.dll</HintPath>
+    </Reference>
+    <Reference Include="Sulakore">
+      <HintPath>..\..\tanji\Tanji\bin\Debug\Sulakore.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -72,16 +72,17 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tangine, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Tangine, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Tanji\Versiot\v1.4.380 [PRE-REL]\Tangine.dll</HintPath>
+      <HintPath>..\..\tanji\Tangine\bin\Release\Tangine.dll</HintPath>
     </Reference>
     <Reference Include="Transitions">
-      <HintPath>..\..\..\Transitions.dll</HintPath>
+      <HintPath>..\..\tanji\Tanji\bin\Debug\Transitions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\SPoisonFurni.cs" />
+    <Compile Include="Classes\SFurni.cs" />
+    <Compile Include="Classes\SHabboWalk.cs" />
     <Compile Include="Classes\STransition.cs" />
     <Compile Include="Components\SKoreLabelBox.cs" />
     <Compile Include="Forms\AboutFrm.cs">
@@ -114,7 +115,6 @@
     <Compile Include="Forms\SplashFrm.Designer.cs">
       <DependentUpon>SplashFrm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Events\PlayerWalkEvent.cs" />
     <Compile Include="MainFrm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -128,7 +128,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Utils\Managers\HeaderManager.cs" />
     <Compile Include="Utils\Managers\HotkeyManager.cs" />
     <Compile Include="Utils\KeyboardHook.cs" />
     <Compile Include="Classes\SStatus.cs" />
@@ -157,6 +156,7 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

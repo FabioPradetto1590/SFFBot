@@ -9,18 +9,15 @@ namespace SFFBot.Utils
 {
     public class SStatus
     {
-        public int TypeID { get; set; }
-        public int Time { get; set; }
+        public Color TextColor { get; set; }
         public int ScrollTime { get; set; }
         public string Message { get; set; }
-        public Color TextColor { get; set; }
         public bool IsShowed { get; set; }
-
+        public int TypeID { get; set; }
         public int Times { get; set; }
+        public int Time { get; set; }
 
-
-        public SStatus(int typeID, int time, int scrollTime, string message,
-            Color color)
+        public SStatus(int typeID, int time, int scrollTime, string message, Color color)
         {
             TypeID = typeID;
             Time = time;

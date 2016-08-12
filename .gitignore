@@ -45,3 +45,7 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/SFFBot/obj/Debug
+/SFFBot/bin/Debug
+/.vs/SFFBot/v14
+/packages/Newtonsoft.Json.8.0.3
