@@ -11,7 +11,7 @@ namespace SFFBot.Classes
 {
     public static class STransition
     {
-        public static void Run(int time, TArgument[] transitions)
+        public static void Run(int time, params TArgument[] transitions)
         {
             var a = new Transition(new TransitionType_Linear(time));
 

@@ -58,8 +58,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\tanji\Tanji\bin\Debug\FlashInspect.dll</HintPath>
     </Reference>
-    <Reference Include="Sulakore">
-      <HintPath>..\..\tanji\Tanji\bin\Debug\Sulakore.dll</HintPath>
+    <Reference Include="Sulakore, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\sulakore\Sulakore\bin\Debug\Sulakore.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -82,7 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\SFurni.cs" />
-    <Compile Include="Classes\SHabboWalk.cs" />
     <Compile Include="Classes\STransition.cs" />
     <Compile Include="Components\SKoreLabelBox.cs" />
     <Compile Include="Forms\AboutFrm.cs">

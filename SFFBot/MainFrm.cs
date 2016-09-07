@@ -24,8 +24,10 @@ using System.Text;
 
 namespace SFFBot
 {
-    public partial class MainFrm : ExtensionForm
+    public partial class MainFrm : Form
     {
+        //public override bool IsRemoteModule { get; } = true;
+
         private List<SFurni> _placedFurnitures = new List<SFurni>();
         private List<SStatus> _currStatuses = new List<SStatus>();
         private List<SFurni> _furnitureList = new List<SFurni>();
@@ -37,8 +39,7 @@ namespace SFFBot
         private int _delay, _ourIndex = -1;
 
         private bool _autoStopEnabled, _isSelectingTile,
-            _canGo, _needsToWalk, _enableAutoStopAfterWalk, 
-            _isPoisonRunning, _isRunning, _isHtkNoticeShowed;
+            _canGo, _isPoisonRunning, _isRunning, _isHtkNoticeShowed;
 
         private HPoint _selectedTile, _ourLocation = null;
         
@@ -78,30 +79,16 @@ namespace SFFBot
 
         private void HandlePlayerWalk(DataInterceptedEventArgs e)
         {
-            var walks = SHabboWalk.Parse(e.Packet);
+            var walks = HEntityAction.Parse(e.Packet);
 
             foreach (var walk in walks)
             {
-                if (_needsToWalk && walk.isOurHabbo)
+                if (!_autoStopEnabled) return;
+
+                if (walk.Index != _ourIndex && _placedFurnitures.Count > 0)
                 {
-                    if (walk.MovingTo != null)
-                        _ourLocation = walk.MovingTo;
-                    else return;
+                    Predicate<SFurni> p = a => a.Location.IsSame(walk.MovingTo);
 
-                    _needsToWalk = false;
-
-                    if (_enableAutoStopAfterWalk)
-                    {
-                        Invoke(new MethodInvoker(() => AutoStopCkbx.PerformClick()));
-                        _enableAutoStopAfterWalk = false;
-
-                        ShowNotificationAsync(1, "AutoStop is enabled again!");
-                    }
-                }
-                else if (!_autoStopEnabled) return;
-
-                if (!walk.isOurHabbo && _placedFurnitures.Count > 0)
-                {
                     if (walk.MovingTo.IsSame(_selFurni.Location))
                     {
                         _placedFurnitures.RemoveAll(a => a.Location.IsSame(_selFurni.Location));
@@ -109,8 +96,8 @@ namespace SFFBot
                         
                         ShowNotificationAsync(1, "Another Habbo got in our selected furniture!\rWaiting for new..");
                     }
-                    else if(_placedFurnitures.Any(a => a.Location.IsSame(walk.MovingTo)))
-                        _placedFurnitures.Remove(_placedFurnitures.Find(a => a.Location.IsSame(walk.MovingTo)));
+                    else if(_placedFurnitures.Exists(p))
+                        _placedFurnitures.Remove(_placedFurnitures.Find(p));
                 }
 
                 if (walk.MovingTo != null)
@@ -184,48 +171,35 @@ namespace SFFBot
                 UseSelectedTileCkbx.Enabled = true;
             }));
         }
+
         private void HandleNewRoom(DataInterceptedEventArgs e)
         {
             _ourIndex = -1;
+            _placedFurnitures.Clear();
 
             if (_autoStopEnabled)
-            {
-
-
-
-                Invoke(new MethodInvoker(() => AutoStopCkbx.PerformClick()));
-                _enableAutoStopAfterWalk = true;
-
-                ShowNotificationAsync(1, "AutoStop is disabled until you move your character.");
-            }
-
-            _placedFurnitures.Clear();
-            _needsToWalk = true;
+                GetOurIndexAsync();
         }
+
+        private async void GetOurIndexAsync()
+        {
+            _main.Triggers.InAttach(Incoming.Global.Whisper, HandleWhisper);
+            
+            await _main.Connection.SendToServerAsync(Outgoing.Global.Whisper, " ‹‹ SFFBot - Getting user index.. ››", 0);
+        }
+
+        private async void HandleWhisper(DataInterceptedEventArgs e)
+        {
+            await Task.Delay(500);
+            _ourIndex = e.Packet.ReadInteger();
+            _main.Triggers.InDetach(Incoming.Global.Whisper);
+
+            await _main.Connection.SendToServerAsync(Outgoing.Global.Whisper, " ‹‹ SFFBot - Done! ››", 0);
+        }
+
         private void HandlePickUp(DataInterceptedEventArgs e)
         {
             _placedFurnitures.RemoveAll(a => a.UniqueId == int.Parse(e.Packet.ReadString()));
-        }
-        private async void HandlePlayerSayAsync(DataInterceptedEventArgs e)
-        {
-            e.Packet.ReadString();
-            e.Packet.ReadInteger();
-            e.Packet.ReplaceInteger(1397769537); //SPEA
-
-       //     _main.Triggers.InAttach(Incoming.Global.Chat, )
-
-            bool gotIndex = await WaitForUserIndex();
-        }
-
-        private async Task<bool> WaitForUserIndex()
-        {
-            bool succeeded = false;
-            while (!succeeded)
-            {
-                succeeded = (_ourIndex != -1);
-                await Task.Delay(500);
-            }
-            return succeeded;
         }
 
         public async void ShowNotificationAsync(int Type, string message)
@@ -236,10 +210,7 @@ namespace SFFBot
                     await _main.Connection.SendToClientAsync(Incoming.Global.RoomNotification, "furni_placement_error", 1, "message", message);
                     break;
                 case 2:
-                    Invoke(new MethodInvoker(() =>
-                    {
-                        StatusBtn.Text = message;
-                    }));
+                    Invoke(new MethodInvoker(() => { StatusBtn.Text = message; }));
                     break;
             }
         }
@@ -259,9 +230,8 @@ namespace SFFBot
             AlwaysOnTopCkbx.Checked = TopMost = Default.TopMost;
             ShowHeaders();
 
-            STransition.Run(1200, new TArgument[]{
-                new TArgument(PoisonGrp, "Top", 27),
-                new TArgument(StartGrp, "Left", 11)});
+            STransition.Run(1200, new TArgument(PoisonGrp, "Top", 27),
+                                  new TArgument(StartGrp, "Left", 11));
 
             ShowNotificationAsync(new SStatus(0, 1250, 3000,
                $"Welcome to SFFBot v{Program.Version}! ", SystemColors.ControlText));
@@ -274,7 +244,6 @@ namespace SFFBot
             Default.Save();
             _main.Close();
         }
-
 
         private void SelectTileBtn_Click(object sender, EventArgs e)
         {
@@ -344,19 +313,18 @@ namespace SFFBot
                 return;
             }
 
-            var poisonFurni = _furnitureList.Where(p => p.TypeId == selTxt.ToPoisonFurni().TypeId).First();
+            var poisonFurni = _furnitureList.First(p => p.TypeId == selTxt.ToPoisonFurni().TypeId);
 
-            if (poisonFurni == null)
-                return;
+            if (poisonFurni == null) return;
 
-            if (poisonFurni.IsPoisoned)
-                ShowNotificationAsync(new SStatus(2, 4000, 3000, "Sorry you already have poisoned this furniture..", Color.DarkRed));
-            else
+            if (!poisonFurni.IsPoisoned)
             {
                 ShowNotificationAsync(new SStatus(2, 3000, 2000, $"Furniture \"{poisonFurni.Name}\" is poisoned!", Color.MediumVioletRed));
                 poisonFurni.IsPoisoned = true;
                 PoisonListCbbx.ResetText();
             }
+            else
+                ShowNotificationAsync(new SStatus(2, 4000, 3000, "Sorry you already have poisoned this furniture..", Color.DarkRed));
 
             PoisonGrp.Text = $"Poison List ({_furnitureList.FindAll(s => s.IsPoisoned).Count})";
         }
@@ -369,7 +337,7 @@ namespace SFFBot
             AutoStopCkbx.Checked = !AutoStopCkbx.Checked;
             _autoStopEnabled = !_autoStopEnabled;
 
-            if (!_enableAutoStopAfterWalk)
+            if (_autoStopEnabled)
                 HandleNewRoom(null);
         }
 
@@ -389,10 +357,10 @@ namespace SFFBot
             List<string> furnitures = _furnitureList.Cast<SFurni>().Select(s => s.ToString()).ToList();
 
             if (char.IsNumber(selTxt[0]) && int.TryParse(selTxt, out i))
-                list = furnitures.FindAll(s => s.ToPoisonFurni().TypeId == i).ToList();
+                list = furnitures.Where(s => s.ToPoisonFurni().TypeId == i).ToList();
 
             if (char.IsLetter(selTxt[0]))
-                list = furnitures.FindAll(s => s.ToPoisonFurni().Name.Contains(selTxt)).ToList();
+                list = furnitures.Where(s => s.ToPoisonFurni().Name.Contains(selTxt)).ToList();
 
             if (e.KeyChar == (char)Keys.Enter)
                 PoisonListCbbx.DataSource = list;
@@ -604,8 +572,7 @@ namespace SFFBot
         {
             bool exists = _placedFurnitures.Exists(a => a.UniqueId == furni.UniqueId);
 
-            if (exists)
-                _placedFurnitures.Where(a => a.UniqueId == furni.UniqueId).First().Location = furni.Location;
+            if (exists) _placedFurnitures.First(a => a.UniqueId == furni.UniqueId).Location = furni.Location;
             else
                 _placedFurnitures.Add(furni);    
         }
@@ -614,7 +581,7 @@ namespace SFFBot
             bool canadd = true;
 
             if (SBPoisonCkbx.Checked)
-                if (_furnitureList.Any(s => s.TypeId == id && s.IsPoisoned)) canadd = false;
+                canadd = !_furnitureList.Any(s => s.TypeId == id && s.IsPoisoned);
 
             ShowNotificationAsync(2, $"{id}: {(canadd ? "Clean!" : "Poisoned")}");
 
@@ -643,7 +610,7 @@ namespace SFFBot
                 if (canGo)
                     _furnitureList.Add(new SFurni(int.Parse(id), name, false));
             }
-            PoisonListCbbx.Items.AddRange(_furnitureList.ToArray());
+            PoisonListCbbx.Items.AddRange(_furnitureList?.ToArray());
             PoisonListCbbx.Enabled = true;
             PoisonListCbbx.ResetText();
         }

@@ -100,8 +100,10 @@ namespace SFFBot.Dialogs
             if (!continuee) return;
 
             Outgoing.Global.MoveAvatar = Game.GetHeader("5dec6a7881d4a598d5b15d0e743bcdcb");
+            Outgoing.Global.Whisper = Game.GetHeader("e1845dadbaa2b01ece59eb127bb6cecc");
             Outgoing.Global.Chat = Game.GetHeader("0112c940712e9061bdaa2b9581216551");
             Incoming.Global.Chat = Game.GetHeader("4c310dd04b5f13450d02d224ba31580d");
+            Incoming.Global.Whisper = Game.GetHeader("e242c1253a4a02e4992601fd900f7be0");
             Incoming.Global.HeightMap = Game.GetHeader("28b93d64f5126a5b304f088c384c974e");
             Incoming.Global.UserUpdate = Game.GetHeader("45d53173f4bf410c6f0d57f0fb0edca3");
             Incoming.Global.ObjectAdd = Game.GetHeader("e4e3bc19857c5495fcdcff4f36d17d3d");
