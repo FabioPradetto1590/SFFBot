@@ -26,8 +26,6 @@ namespace SFFBot
 {
     public partial class MainFrm : Form
     {
-        //public override bool IsRemoteModule { get; } = true;
-
         private List<SFurni> _placedFurnitures = new List<SFurni>();
         private List<SStatus> _currStatuses = new List<SStatus>();
         private List<SFurni> _furnitureList = new List<SFurni>();
@@ -129,10 +127,9 @@ namespace SFFBot
 
             if (UseSelectedTileCkbx.Checked)
             {
-                if (!_selectedTile.IsSame(furni.Location))
-                    return;
-                else
+                if (_selectedTile.IsSame(furni.Location))
                     ShowNotificationAsync(1, "Furniture placed to selected Tile!");
+                else return;
             }
 
             if (_selFurni == null && _autoStopEnabled)
@@ -184,16 +181,15 @@ namespace SFFBot
         private async void GetOurIndexAsync()
         {
             _main.Triggers.InAttach(Incoming.Global.Whisper, HandleWhisper);
-            
             await _main.Connection.SendToServerAsync(Outgoing.Global.Whisper, " ‹‹ SFFBot - Getting user index.. ››", 0);
         }
 
         private async void HandleWhisper(DataInterceptedEventArgs e)
         {
-            await Task.Delay(500);
             _ourIndex = e.Packet.ReadInteger();
             _main.Triggers.InDetach(Incoming.Global.Whisper);
 
+            await Task.Delay(500);
             await _main.Connection.SendToServerAsync(Outgoing.Global.Whisper, " ‹‹ SFFBot - Done! ››", 0);
         }
 
@@ -219,24 +215,22 @@ namespace SFFBot
         #region Form Actions
         private async void SBMain_Load(object sender, EventArgs e)
         {
-            Task loadFurniTask = LoadFurniDataAsync();
-
-            Text = $"SFFBot - v{Program.Version}";
-            VersionTxt.Text = $"v{Program.Version}";
-
             StartGrp.Location = new Point(-252, 79);
             PoisonGrp.Location = new Point(11, -23);
 
-            AlwaysOnTopCkbx.Checked = TopMost = Default.TopMost;
-            ShowHeaders();
-
-            STransition.Run(1200, new TArgument(PoisonGrp, "Top", 27),
-                                  new TArgument(StartGrp, "Left", 11));
+            STransition.Run(1200, new TArgument(PoisonGrp, "Top", 27), new TArgument(StartGrp, "Left", 11));
 
             ShowNotificationAsync(new SStatus(0, 1250, 3000,
                $"Welcome to SFFBot v{Program.Version}! ", SystemColors.ControlText));
 
+            Task loadFurniTask = LoadFurniDataAsync();
             await loadFurniTask;
+
+            Text = $"SFFBot - v{Program.Version}";
+            VersionTxt.Text = $"v{Program.Version}";
+
+            AlwaysOnTopCkbx.Checked = TopMost = Default.TopMost;
+            ShowHeaders();
         }
         private void SBMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -326,7 +320,7 @@ namespace SFFBot
             else
                 ShowNotificationAsync(new SStatus(2, 4000, 3000, "Sorry you already have poisoned this furniture..", Color.DarkRed));
 
-            PoisonGrp.Text = $"Poison List ({_furnitureList.FindAll(s => s.IsPoisoned).Count})";
+            PoisonGrp.Text = $"Poison List ({_furnitureList.Count(s => s.IsPoisoned)})";
         }
         private void ReportMenuItem_Click(object sender, EventArgs e)
         {
@@ -581,7 +575,7 @@ namespace SFFBot
             bool canadd = true;
 
             if (SBPoisonCkbx.Checked)
-                canadd = !_furnitureList.Any(s => s.TypeId == id && s.IsPoisoned);
+                canadd = !_furnitureList.Exists(s => s.TypeId == id && s.IsPoisoned);
 
             ShowNotificationAsync(2, $"{id}: {(canadd ? "Clean!" : "Poisoned")}");
 

@@ -24,7 +24,7 @@ namespace SFFBot.Dialogs
 {
     [GitHub("Speaqer", "SFFBot")]
     [Module("SFFBot", "Bot for Falling Furniture game.")]
-    [Author("Speaqer", HabboName = "Speaqer-VIII", Hotel = HHotel.Fi)]
+    [Author("Speaqer", HabboName = "Speaqer-IX", Hotel = HHotel.Fi)]
     [Author("Speaqer", HabboName = "TBH-Speaqer", Hotel = HHotel.Com)]
     [Author("Speaqer", HabboName = "TBH-Speaqer", Hotel = HHotel.Nl)]
     [Author("Adversities", HabboName ="Sulakore", Hotel = HHotel.Es)]
@@ -49,14 +49,16 @@ namespace SFFBot.Dialogs
             TransparencyKey = BackColor;
             Text = $"SFFBot v{Program.Version}- Initializing";
 
+            #region Reference h4x
             string transitionsName = @"Installed Modules\Dependencies\Transitions.dll"; 
 
             if (File.Exists(transitionsName) && !File.Exists("Transitions.dll"))
                 File.Move(transitionsName, "Transitions.dll");
+            #endregion
         }
         private void SplashFrm_Load(object sender, EventArgs e)
         {
-            if (!Default.ShowSplash)
+            if (Default.ShowSplash)
                 SplashTmr1.Start();
             else
                 CloseForm();
@@ -101,8 +103,6 @@ namespace SFFBot.Dialogs
 
             Outgoing.Global.MoveAvatar = Game.GetHeader("5dec6a7881d4a598d5b15d0e743bcdcb");
             Outgoing.Global.Whisper = Game.GetHeader("e1845dadbaa2b01ece59eb127bb6cecc");
-            Outgoing.Global.Chat = Game.GetHeader("0112c940712e9061bdaa2b9581216551");
-            Incoming.Global.Chat = Game.GetHeader("4c310dd04b5f13450d02d224ba31580d");
             Incoming.Global.Whisper = Game.GetHeader("e242c1253a4a02e4992601fd900f7be0");
             Incoming.Global.HeightMap = Game.GetHeader("28b93d64f5126a5b304f088c384c974e");
             Incoming.Global.UserUpdate = Game.GetHeader("45d53173f4bf410c6f0d57f0fb0edca3");
