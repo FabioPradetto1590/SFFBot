@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://www.i.imgur.com/Lb62xc4.png" alt="SFFBot">
+  <img src="http://i.imgur.com/sNPLeuZ.jpg" alt="SFFBot">
 </p>
 
 # SFFBot
