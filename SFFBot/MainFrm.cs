@@ -21,6 +21,7 @@ using Sulakore;
 using System.IO;
 using Sulakore.Habbo.Headers;
 using System.Text;
+using static System.Globalization.CultureInfo;
 
 namespace SFFBot
 {
@@ -223,14 +224,13 @@ namespace SFFBot
             ShowNotificationAsync(new SStatus(0, 1250, 3000,
                $"Welcome to SFFBot v{Program.Version}! ", SystemColors.ControlText));
 
-            Task loadFurniTask = LoadFurniDataAsync();
-            await loadFurniTask;
-
             Text = $"SFFBot - v{Program.Version}";
             VersionTxt.Text = $"v{Program.Version}";
 
             AlwaysOnTopCkbx.Checked = TopMost = Default.TopMost;
             ShowHeaders();
+
+            await LoadFurniDataAsync();
         }
         private void SBMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -450,44 +450,43 @@ namespace SFFBot
         #region Functions
         public void ToggleBotState()
         {
-            ToggleBotState(_isRunning ? false : true);
+            ToggleBotState(!_isRunning);
         }
 
         public void ToggleBotState(bool toRunning, bool showNotif = true)
         {
+            _isRunning = toRunning;
+            string state = (toRunning ? "running" : "stopped");
+
+            if (showNotif)
+                ShowNotificationAsync(1, $"SFFBot is {state}!");
+
             Invoke((MethodInvoker)delegate
             {
-                if (toRunning)
-                {
-                    _isRunning = true;
-                    StartBtn.Text = "Stop";
-                    StartGrp.Text = "Start Options (Running)";
-                    if(showNotif)
-                        ShowNotificationAsync(1, "SFFBot is running!");
-
-                    _main.Triggers.InAttach(Incoming.Global.ObjectAdd, HandleFurnitureAsync);
-                    _main.Triggers.InAttach(Incoming.Global.ObjectUpdate, HandleFurnitureAsync);
-                }
-                else
-                {
-                    _isRunning = false;
-                    StartBtn.Text = "Start";
-                    StartGrp.Text = "Start Options (Stopped)";
-                    if (showNotif)
-                        ShowNotificationAsync(1, "SFFBot is stopped!");
-
-                    _main.Triggers.InDetach(Incoming.Global.ObjectAdd);
-                    _main.Triggers.InDetach(Incoming.Global.ObjectUpdate);
-                }
+                StartBtn.Text = (toRunning ? "Stop" : "Start");
+                StartGrp.Text = $"Start Options ({CurrentCulture.TextInfo.ToTitleCase(state)})";
             });
+
+            if (toRunning)
+            {
+                _main.Triggers.InAttach(Incoming.Global.ObjectAdd, HandleFurnitureAsync);
+                _main.Triggers.InAttach(Incoming.Global.ObjectUpdate, HandleFurnitureAsync);
+            }
+            else
+            {
+                _main.Triggers.InDetach(Incoming.Global.ObjectAdd);
+                _main.Triggers.InDetach(Incoming.Global.ObjectUpdate);
+            }
         }
+
         public void TogglePoisonState()
         {
-            _isPoisonRunning = SBPoisonCkbx.Checked = (_isPoisonRunning ? false : true);
+            _isPoisonRunning = SBPoisonCkbx.Checked = !_isPoisonRunning;
         }
+
         public void SetCustomDelay(int delay)
         {
-            SBCustomDelay.Visible = (delay == 0 ? false : true);
+            SBCustomDelay.Visible = delay != 0;
 
             SBCustomDelay.Text = $"{delay} (ms)";
             CustomDelay = delay;

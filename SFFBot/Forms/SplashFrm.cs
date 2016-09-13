@@ -47,7 +47,7 @@ namespace SFFBot.Dialogs
                 _gotHeadersAwaitable.SetResult(true);
 
             TransparencyKey = BackColor;
-            Text = $"SFFBot v{Program.Version}- Initializing";
+            Text = $"SFFBot v{Program.Version} - Initializing";
 
             #region Reference h4x
             string transitionsName = @"Installed Modules\Dependencies\Transitions.dll"; 
@@ -90,16 +90,14 @@ namespace SFFBot.Dialogs
 
         public override void ModifyGame(HGame game)
         {
-            if (!_hasHeaders)
-                _gotHeadersAwaitable.SetResult(true);
+            _gotHeadersAwaitable.SetResult(!_hasHeaders);
 
             base.ModifyGame(game);
         }
 
         private void CloseForm()
         {
-            bool continuee = _gotHeadersAwaitable.Task.Result;
-            if (!continuee) return;
+            if (!_gotHeadersAwaitable.Task.Result) return;
 
             Outgoing.Global.MoveAvatar = Game.GetHeader("5dec6a7881d4a598d5b15d0e743bcdcb");
             Outgoing.Global.Whisper = Game.GetHeader("e1845dadbaa2b01ece59eb127bb6cecc");
@@ -112,7 +110,6 @@ namespace SFFBot.Dialogs
             Incoming.Global.RoomNotification = Game.GetHeader("823973d6a28dcd0da8954c594b62c54b");
             Hide();
 
-            _gotHeadersAwaitable.Task.Dispose();
             var frm = new MainFrm(this);
             frm.Show();
         }
