@@ -77,6 +77,8 @@
             this.MessageTxt = new System.Windows.Forms.Label();
             this.FixPanel = new System.Windows.Forms.Panel();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SelectOneTileBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.SelectMultipleTilesBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.SBMenuStrip.SuspendLayout();
             this.PoisonGrp.SuspendLayout();
             this.StartGrp.SuspendLayout();
@@ -118,7 +120,7 @@
             // AutoStopCkbx
             // 
             this.AutoStopCkbx.Name = "AutoStopCkbx";
-            this.AutoStopCkbx.Size = new System.Drawing.Size(162, 22);
+            this.AutoStopCkbx.Size = new System.Drawing.Size(175, 22);
             this.AutoStopCkbx.Text = "AutoStop";
             this.AutoStopCkbx.Click += new System.EventHandler(this.AutoStopCkbx_Click);
             // 
@@ -126,7 +128,7 @@
             // 
             this.AlwaysOnTopCkbx.CheckOnClick = true;
             this.AlwaysOnTopCkbx.Name = "AlwaysOnTopCkbx";
-            this.AlwaysOnTopCkbx.Size = new System.Drawing.Size(162, 22);
+            this.AlwaysOnTopCkbx.Size = new System.Drawing.Size(175, 22);
             this.AlwaysOnTopCkbx.Text = "Always On Top";
             this.AlwaysOnTopCkbx.Click += new System.EventHandler(this.SBAlwaysOnTopCkbx_Click);
             // 
@@ -135,21 +137,21 @@
             this.UseSelectedTileCkbx.CheckOnClick = true;
             this.UseSelectedTileCkbx.Enabled = false;
             this.UseSelectedTileCkbx.Name = "UseSelectedTileCkbx";
-            this.UseSelectedTileCkbx.Size = new System.Drawing.Size(162, 22);
-            this.UseSelectedTileCkbx.Text = "Use Selected Tile";
+            this.UseSelectedTileCkbx.Size = new System.Drawing.Size(175, 22);
+            this.UseSelectedTileCkbx.Text = "Use Selected Tile(s)";
             // 
             // SBPoisonCkbx
             // 
             this.SBPoisonCkbx.CheckOnClick = true;
             this.SBPoisonCkbx.Name = "SBPoisonCkbx";
-            this.SBPoisonCkbx.Size = new System.Drawing.Size(162, 22);
+            this.SBPoisonCkbx.Size = new System.Drawing.Size(175, 22);
             this.SBPoisonCkbx.Text = "Poison";
             this.SBPoisonCkbx.Click += new System.EventHandler(this.SBPoisonCkbx_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(159, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(172, 6);
             // 
             // SBHeadersMenuStrip
             // 
@@ -159,7 +161,7 @@
             this.WalkMenuStrip,
             this.Walk2MenuStrip});
             this.SBHeadersMenuStrip.Name = "SBHeadersMenuStrip";
-            this.SBHeadersMenuStrip.Size = new System.Drawing.Size(162, 22);
+            this.SBHeadersMenuStrip.Size = new System.Drawing.Size(175, 22);
             this.SBHeadersMenuStrip.Text = "Headers";
             // 
             // DropMenuStrip
@@ -231,7 +233,7 @@
             this.SBCustomDelay,
             this.CustomDelayOpenDlg});
             this.SBDelayMenuStrip.Name = "SBDelayMenuStrip";
-            this.SBDelayMenuStrip.Size = new System.Drawing.Size(162, 22);
+            this.SBDelayMenuStrip.Size = new System.Drawing.Size(175, 22);
             this.SBDelayMenuStrip.Text = "Delay";
             // 
             // SB100Ckbx
@@ -299,38 +301,40 @@
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(159, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(172, 6);
             // 
             // SelectTileBtn
             // 
+            this.SelectTileBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SelectOneTileBtn,
+            this.SelectMultipleTilesBtn});
             this.SelectTileBtn.Name = "SelectTileBtn";
-            this.SelectTileBtn.Size = new System.Drawing.Size(162, 22);
-            this.SelectTileBtn.Text = "Select Tile";
-            this.SelectTileBtn.Click += new System.EventHandler(this.SelectTileBtn_Click);
+            this.SelectTileBtn.Size = new System.Drawing.Size(175, 22);
+            this.SelectTileBtn.Text = "Select Tile(s)";
             // 
             // ClearPoisonBtn
             // 
             this.ClearPoisonBtn.Name = "ClearPoisonBtn";
-            this.ClearPoisonBtn.Size = new System.Drawing.Size(162, 22);
+            this.ClearPoisonBtn.Size = new System.Drawing.Size(175, 22);
             this.ClearPoisonBtn.Text = "Clear Poison List";
             this.ClearPoisonBtn.Click += new System.EventHandler(this.SBClearPoisonBtn_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(159, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(172, 6);
             // 
             // OpenHotkeysBtn
             // 
             this.OpenHotkeysBtn.Name = "OpenHotkeysBtn";
-            this.OpenHotkeysBtn.Size = new System.Drawing.Size(162, 22);
+            this.OpenHotkeysBtn.Size = new System.Drawing.Size(175, 22);
             this.OpenHotkeysBtn.Text = "Hotkeys..";
             this.OpenHotkeysBtn.Click += new System.EventHandler(this.OpenHotkeysBtn_Click);
             // 
             // OpenSettingsBtn
             // 
             this.OpenSettingsBtn.Name = "OpenSettingsBtn";
-            this.OpenSettingsBtn.Size = new System.Drawing.Size(162, 22);
+            this.OpenSettingsBtn.Size = new System.Drawing.Size(175, 22);
             this.OpenSettingsBtn.Text = "Settings..";
             this.OpenSettingsBtn.Click += new System.EventHandler(this.OpenSettingsBtn_Click);
             // 
@@ -486,6 +490,20 @@
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
             // 
+            // SelectOneTileBtn
+            // 
+            this.SelectOneTileBtn.Name = "SelectOneTileBtn";
+            this.SelectOneTileBtn.Size = new System.Drawing.Size(152, 22);
+            this.SelectOneTileBtn.Text = "One";
+            this.SelectOneTileBtn.Click += new System.EventHandler(this.SelectOneTileBtn_Click);
+            // 
+            // SelectMultipleTilesBtn
+            // 
+            this.SelectMultipleTilesBtn.Name = "SelectMultipleTilesBtn";
+            this.SelectMultipleTilesBtn.Size = new System.Drawing.Size(152, 22);
+            this.SelectMultipleTilesBtn.Text = "Multiple";
+            this.SelectMultipleTilesBtn.Click += new System.EventHandler(this.SelectMultipleTilesBtn_Click);
+            // 
             // MainFrm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -570,6 +588,8 @@
         private System.Windows.Forms.ToolStripMenuItem SBCustomDelay;
         private System.Windows.Forms.ToolStripMenuItem AutoStopCkbx;
         private System.Windows.Forms.ToolStripMenuItem SB200Ckbx;
+        private System.Windows.Forms.ToolStripMenuItem SelectOneTileBtn;
+        private System.Windows.Forms.ToolStripMenuItem SelectMultipleTilesBtn;
     }
 }
 

@@ -84,7 +84,6 @@
   <ItemGroup>
     <Compile Include="Classes\SFurni.cs" />
     <Compile Include="Classes\STransition.cs" />
-    <Compile Include="Components\SKoreLabelBox.cs" />
     <Compile Include="Forms\AboutFrm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -128,7 +127,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Utils\Managers\HotkeyManager.cs" />
+    <Compile Include="Managers\HotkeyManager.cs" />
     <Compile Include="Utils\KeyboardHook.cs" />
     <Compile Include="Classes\SStatus.cs" />
     <Compile Include="Utils\NativeMethods.cs" />

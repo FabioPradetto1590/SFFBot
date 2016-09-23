@@ -34,6 +34,6 @@ namespace SFFBot.Classes
             IsPoisoned = false;
         }
 
-        public override string ToString() => $"[{TypeId}] : {Name}";
+        public override string ToString() => $"[{TypeId}] {Name}";
     }
 }

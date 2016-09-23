@@ -30,9 +30,9 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(HotkeyFrm));
             this.BotToggleGrpb = new System.Windows.Forms.GroupBox();
-            this.ToggleBotStateHtkBox = new SFFBot.Components.SKoreLabelBox();
+            this.ToggleBotStateHtkBox = new Sulakore.Components.SKoreLabelBox();
             this.PoisonHtkGrpb = new System.Windows.Forms.GroupBox();
-            this.TogglePoisonStateHtkBox = new SFFBot.Components.SKoreLabelBox();
+            this.TogglePoisonStateHtkBox = new Sulakore.Components.SKoreLabelBox();
             this.DescriptionTxt = new Sulakore.Components.SKoreLabel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.BotToggleGrpb.SuspendLayout();
@@ -128,9 +128,9 @@
 
         #endregion
         private System.Windows.Forms.GroupBox BotToggleGrpb;
-        private SFFBot.Components.SKoreLabelBox ToggleBotStateHtkBox;
+        private Sulakore.Components.SKoreLabelBox ToggleBotStateHtkBox;
         private System.Windows.Forms.GroupBox PoisonHtkGrpb;
-        private SFFBot.Components.SKoreLabelBox TogglePoisonStateHtkBox;
+        private Sulakore.Components.SKoreLabelBox TogglePoisonStateHtkBox;
         private Sulakore.Components.SKoreLabel DescriptionTxt;
         private System.Windows.Forms.Panel panel1;
     }

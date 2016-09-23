@@ -37,7 +37,7 @@ namespace SFFBot
         private SplashFrm _main;
         private int _delay, _ourIndex = -1;
 
-        private bool _autoStopEnabled, _isSelectingTile,
+        private bool _autoStopEnabled, _isSelectingTile, _isSelectingTiles,
             _canGo, _isPoisonRunning, _isRunning, _isHtkNoticeShowed;
 
         private HPoint _selectedTile, _ourLocation = null;
@@ -238,26 +238,6 @@ namespace SFFBot
             Default.Save();
             _main.Close();
         }
-
-        private void SelectTileBtn_Click(object sender, EventArgs e)
-        {
-            if (_isSelectingTile)
-            {
-                _isSelectingTile = false;
-                SelectTileBtn.Text = "Select Tile";
-                ShowNotificationAsync(1, "Tile selecting cancelled!");
-
-                _main.Triggers.OutDetach(Outgoing.Global.MoveAvatar);
-            }
-            else
-            {
-                _isSelectingTile = true;
-                SelectTileBtn.Text = "Cancel Tile Selecting";
-                ShowNotificationAsync(1, "Select a tile!");
-
-                _main.Triggers.OutAttach(Outgoing.Global.MoveAvatar, HandleTileSelecting);
-            }
-        }
         private void SBAboutButton_Click(object sender, EventArgs e)
         {
             var frm = new AboutFrm();
@@ -322,6 +302,30 @@ namespace SFFBot
 
             PoisonGrp.Text = $"Poison List ({_furnitureList.Count(s => s.IsPoisoned)})";
         }
+        private void SelectOneTileBtn_Click(object sender, EventArgs e)
+        {
+            if (_isSelectingTile)
+            {
+                _isSelectingTile = false;
+                SelectTileBtn.Text = "Select Tile";
+                ShowNotificationAsync(1, "Tile selecting cancelled!");
+
+                _main.Triggers.OutDetach(Outgoing.Global.MoveAvatar);
+            }
+            else
+            {
+                _isSelectingTile = true;
+                SelectTileBtn.Text = "Cancel Tile Selecting";
+                ShowNotificationAsync(1, "Select a tile!");
+
+                _main.Triggers.OutAttach(Outgoing.Global.MoveAvatar, HandleTileSelecting);
+            }
+        }
+        private void SelectMultipleTilesBtn_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void ReportMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Clyde waz here.", "Info - Nothing here yet.", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
@@ -335,7 +339,7 @@ namespace SFFBot
                 HandleNewRoom(null);
         }
 
-        List<string> list;
+        private List<string> list;
         private void PoisonListCbbx_KeyPress(object sender, KeyPressEventArgs e)
         {
             string selTxt = PoisonListCbbx.Text;
