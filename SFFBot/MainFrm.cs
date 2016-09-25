@@ -196,7 +196,8 @@ namespace SFFBot
 
         private void HandlePickUp(DataInterceptedEventArgs e)
         {
-            _placedFurnitures.RemoveAll(a => a.UniqueId == int.Parse(e.Packet.ReadString()));
+            int id = int.Parse(e.Packet.ReadString());
+            _placedFurnitures.RemoveAll(a => a.UniqueId == id));
         }
 
         public async void ShowNotificationAsync(int Type, string message)
